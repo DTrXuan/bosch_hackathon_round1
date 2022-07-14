@@ -8,14 +8,6 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait
 from pybricks.parameters import Button, Color
 
-# #import for mo phong############################################################
-# from pybricks.robotics import DriveBase
-# left_motor = Motor(Port.A)
-# right_motor = Motor(Port.B)
-# robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=104)
-# robot.settings(straight_speed =100, straight_acceleration=50, turn_rate=100, turn_acceleration=50)
-# ult_sen = UltrasonicSensor(Port.S2) #mo phong
-# ################################################################################
 
 """ INITIALIZED  """
 # Create your objects here.
@@ -31,11 +23,11 @@ pressed = [] #mang luu gia tri nut nhan
 button = 0 #bien luu gia tri nut nhan
 
 VEL_MAX = 1050 #dps Degree per second (DPS)
-VEL_MIN_CANMOVE = 40 #dps toc do nho nhat co the lam di chuyen xe
+VEL_MIN_CANMOVE = 10 #dps toc do nho nhat co the lam di chuyen xe
 VEL_STOP = 0 #stop 
 
 DISOFFSET = 0 #mm bu so sai lech khoang cach thuc te voi ket qua do duoc
-STOP_DIST = 40 #mm khoang cach phai dung lai
+STOP_DIST = 45 #mm khoang cach phai dung lai
 REDUCE_VEL_ZONE = 150 #mm vung giam toc: khoang cach tu xe den vat can. trong vung nay xe bat dau giam toc do
 DIS_MAX = 2550 #mm k co vat can hoac vat can qua gan truoc cam bien.
 
@@ -72,7 +64,6 @@ def veloc_calc(dist):
     # tính giá trị tốc độ dựa trên khoảng cách
     if (dist <= STOP_DIST):
         vel_rt = VEL_STOP
-        able2go_b = False
     elif (dist > REDUCE_VEL_ZONE):
         vel_rt = VEL_MAX
     else:
@@ -87,14 +78,13 @@ def veloc_calc(dist):
 
 def wait_for_driver():
     ev3.speaker.say("DANGER! PLEASE PRESS BRAKE")        
-    drv_mot.run(0)
     while (not Button.DOWN in ev3.buttons.pressed()):
         for i in range(3):
             ev3.speaker.beep(frequency=500, duration=100)
         ev3.light.on(Color.RED)
         wait(20)
         ev3.light.off()
-    
+        
     ev3.speaker.say("OK")
 
 #
@@ -131,7 +121,6 @@ while True:
     # kiem tra dieu kien nguy hiem
     if (calculated_dist <= STOP_DIST):
         able2go_b = False
-        vel = VEL_STOP
     else:
         able2go_b = True
     
@@ -140,15 +129,15 @@ while True:
         # dieu khien xe
         if (able2go_b == True):
             vel = veloc_calc(calculated_dist)
-            # robot.drive(vel,0)
-            drv_mot.run(vel) #comment for mo phong
+                        
         # yeu cau nhan phanh khi gap nguy hiem
         if (able2go_b == False):
             # robot.straight(0)
-            drv_mot.run(0) #comment for mo phong
-            wait_for_driver()
             vel = VEL_STOP
+            # wait_for_driver()
             demand2go_b = False
+        
+        drv_mot.run(vel) #comment for mo phong
     
     # Chờ lệnh từ driver
     if (demand2go_b == False):
