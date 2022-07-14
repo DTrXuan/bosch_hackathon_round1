@@ -8,35 +8,35 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait
 from pybricks.parameters import Button, Color
 
-#import for mo phong############################################################
-from pybricks.robotics import DriveBase
-left_motor = Motor(Port.A)
-right_motor = Motor(Port.B)
-robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=104)
-robot.settings(straight_speed =100, straight_acceleration=50, turn_rate=100, turn_acceleration=50)
-ult_sen = UltrasonicSensor(Port.S2) #mo phong
-################################################################################
+# #import for mo phong############################################################
+# from pybricks.robotics import DriveBase
+# left_motor = Motor(Port.A)
+# right_motor = Motor(Port.B)
+# robot = DriveBase(left_motor, right_motor, wheel_diameter=55.5, axle_track=104)
+# robot.settings(straight_speed =100, straight_acceleration=50, turn_rate=100, turn_acceleration=50)
+# ult_sen = UltrasonicSensor(Port.S2) #mo phong
+# ################################################################################
 
 """ INITIALIZED  """
 # Create your objects here.
 ev3 = EV3Brick()
 
 # Khoi tao ngoai vi
-# drv_mot = Motor(Port.A)
-# Steer_mot = Motor(Port.B)
-# ult_sen = UltrasonicSensor(Port.S1)
+drv_mot = Motor(Port.A)
+Steer_mot = Motor(Port.B)
+ult_sen = UltrasonicSensor(Port.S1)
 
 # Khoi tao bien
 pressed = [] #mang luu gia tri nut nhan
 button = 0 #bien luu gia tri nut nhan
 
 VEL_MAX = 1050 #dps Degree per second (DPS)
-VEL_MIN_CANMOVE = 20 #dps toc do nho nhat co the lam di chuyen xe
+VEL_MIN_CANMOVE = 40 #dps toc do nho nhat co the lam di chuyen xe
 VEL_STOP = 0 #stop 
 
 DISOFFSET = 0 #mm bu so sai lech khoang cach thuc te voi ket qua do duoc
 STOP_DIST = 40 #mm khoang cach phai dung lai
-REDUCE_VEL_ZONE = 2000 #mm vung giam toc: khoang cach tu xe den vat can. trong vung nay xe bat dau giam toc do
+REDUCE_VEL_ZONE = 150 #mm vung giam toc: khoang cach tu xe den vat can. trong vung nay xe bat dau giam toc do
 DIS_MAX = 2550 #mm k co vat can hoac vat can qua gan truoc cam bien.
 
 """
@@ -70,8 +70,9 @@ def veloc_calc(dist):
     vel_rt = 0
 
     # tính giá trị tốc độ dựa trên khoảng cách
-    if ((dist >= DIS_MAX) or (dist <= STOP_DIST)):
+    if (dist <= STOP_DIST):
         vel_rt = VEL_STOP
+        able2go_b = False
     elif (dist > REDUCE_VEL_ZONE):
         vel_rt = VEL_MAX
     else:
@@ -86,20 +87,22 @@ def veloc_calc(dist):
 
 def wait_for_driver():
     ev3.speaker.say("DANGER! PLEASE PRESS BRAKE")        
-    
+    drv_mot.run(0)
     while (not Button.DOWN in ev3.buttons.pressed()):
         for i in range(3):
             ev3.speaker.beep(frequency=500, duration=100)
+        ev3.light.on(Color.RED)
         wait(20)
+        ev3.light.off()
     
     ev3.speaker.say("OK")
 
 #
 """ MAIN """
-# Giữ bánh đánh lái đứng yên
-# Steer_mot.hold() #comment for mo phong
-
 ev3.speaker.beep(frequency=200, duration=100)
+
+# Giữ bánh đánh lái đứng yên
+Steer_mot.hold() #comment for mo phong
 
 # chờ đến khi user nhấn CENTER
 ev3.speaker.say("Press CENTER to go")
@@ -116,17 +119,19 @@ if (calculated_dist >= DIS_MAX or calculated_dist <= STOP_DIST):
 else:
     able2go_b = True
     
-ev3.speaker.say("CON CAC GET GO")
+ev3.speaker.say("GEC GOOOO")
 
 while True:
 
     # doc khoang cach
     raw_dist = ult_sen.distance()
     calculated_dist = raw_dist + DISOFFSET
+    ev3.screen.print("dist: "+ str(calculated_dist) + "vel: " + str(vel))
     
     # kiem tra dieu kien nguy hiem
-    if (calculated_dist >= DIS_MAX or calculated_dist <= STOP_DIST):
+    if (calculated_dist <= STOP_DIST):
         able2go_b = False
+        vel = VEL_STOP
     else:
         able2go_b = True
     
@@ -135,19 +140,21 @@ while True:
         # dieu khien xe
         if (able2go_b == True):
             vel = veloc_calc(calculated_dist)
-            robot.drive(vel,0)
-            # drv_mot.run(vel) #comment for mo phong
+            # robot.drive(vel,0)
+            drv_mot.run(vel) #comment for mo phong
         # yeu cau nhan phanh khi gap nguy hiem
         if (able2go_b == False):
-            robot.straight(0)
-            # drv_mot.run(0) ##comment for mo phong
+            # robot.straight(0)
+            drv_mot.run(0) #comment for mo phong
             wait_for_driver()
+            vel = VEL_STOP
             demand2go_b = False
     
     # Chờ lệnh từ driver
-    if(demand2go_b == False):
+    if (demand2go_b == False):
+        ev3.light.on(Color.RED)
         if ((Button.UP in ev3.buttons.pressed()) and (able2go_b == True)):
-            ev3.speaker.say("OK GET GO")
+            ev3.speaker.say("OK GO")
             demand2go_b = True
         elif ((Button.UP in ev3.buttons.pressed()) and (able2go_b == False)):
             ev3.speaker.say("DANGER CAN NOT GO FORWARD")
