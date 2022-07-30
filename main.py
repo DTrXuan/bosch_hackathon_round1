@@ -1,12 +1,12 @@
 #!/usr/bin/env pybricks-micropython
 # This program requires LEGO EV3 MicroPython v2.0 or higher.
+
 from math import floor
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor
 from pybricks.ev3devices import UltrasonicSensor
 from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait
-from pybricks.parameters import Button, Color
 from uerrno import ENODEV
 
 """ INITIALIZED  """
